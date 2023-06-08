@@ -90,6 +90,9 @@ project.release?.addJobs({
             },
             {
                 name: 'Test Docker image',
+                env: {
+                    RELEASE_TAG: '${{ steps.get-release-tag.outputs.RELEASE_TAG }}',
+                },
                 run: `docker run --rm ghcr.io/${githubUserName}/${name}:$RELEASE_TAG`,
             },
         ],
