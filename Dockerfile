@@ -2,7 +2,7 @@
 # linux/arm64/v8 and linux/amd64
 ARG NODE_CONTAINER_VERSION='lts-alpine'
 
-FROM node:NODE_CONTAINER_VERSION as builder
+FROM node:$NODE_CONTAINER_VERSION as builder
 
 # Set the working directory in the container
 WORKDIR /build
@@ -11,7 +11,7 @@ COPY . /build/
 
 RUN 'npm install -g yarn; yarn install; yarn build'
 
-FROM node:NODE_CONTAINER_VERSION
+FROM node:$NODE_CONTAINER_VERSION
 
 # Copy the rest of the application code to the working directory
 COPY --from=builder /build/lib/* .
