@@ -83,7 +83,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
       - name: Login to container registry
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.PROJEN_GITHUB_TOKEN }}
         run: echo "$GH_TOKEN" | docker login ghcr.io -u devops-at-home --password-stdin
       - name: Download build artifacts
         uses: actions/download-artifact@v3

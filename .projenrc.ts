@@ -53,7 +53,7 @@ project.release?.addJobs({
             {
                 name: 'Login to container registry',
                 env: {
-                    GH_TOKEN: '${{ github.token }}',
+                    GH_TOKEN: '${{ secrets.PROJEN_GITHUB_TOKEN }}',
                 },
                 run: `echo "$GH_TOKEN" | docker login ghcr.io -u ${githubUserName} --password-stdin`,
             },
