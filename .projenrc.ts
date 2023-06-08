@@ -82,6 +82,7 @@ project.release?.addJobs({
             },
             {
                 name: 'Build Docker image',
+                workingDirectory: '${{ steps.extract-folder.outputs.FOLDER_NAME }}',
                 env: {
                     RELEASE_TAG: '${{ steps.get-release-tag.outputs.RELEASE_TAG }}',
                 },

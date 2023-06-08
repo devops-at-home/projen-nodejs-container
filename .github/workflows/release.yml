@@ -105,5 +105,6 @@ jobs:
         env:
           RELEASE_TAG: ${{ steps.get-release-tag.outputs.RELEASE_TAG }}
         run: docker build -t ghcr.io/devops-at-home/projen-nodejs-container:$RELEASE_TAG --build-arg NODE_CONTAINER_VERSION=lts-alpine .
+        working-directory: ${{ steps.extract-folder.outputs.FOLDER_NAME }}
       - name: Test Docker image
         run: docker run --rm -it ghcr.io/devops-at-home/projen-nodejs-container:$RELEASE_TAG
