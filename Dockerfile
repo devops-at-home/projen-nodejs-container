@@ -15,8 +15,8 @@ RUN yarn install \
 FROM node:$NODE_CONTAINER_VERSION
 
 # Copy the rest of the application code to the working directory
-COPY --from=builder /build/lib/* .
+COPY --from=builder /build/lib/* /app/
 
 # Set the command to run your app (replace "index.js" with your app's entry point)
-CMD [ "/usr/bin/node", "app/index.js" ]
+CMD [ "/usr/bin/node", "/app/index.js" ]
 
