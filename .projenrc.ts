@@ -34,17 +34,21 @@ const project = new typescript.TypeScriptAppProject({
 
 project.release?.addJobs({
     publish_container: {
+        name: 'Publish container to GitHub container registry',
         runsOn: ['ubuntu-latest'],
         needs: ['release_github'],
         permissions: { contents: JobPermission.READ, idToken: JobPermission.WRITE },
         env: {
             CI: 'true',
+            REGISTRY_IMAGE: `${githubUserName}/${name}`,
         },
-        name: 'Publish container to GitHub container registry',
         steps: [
             {
-                name: 'Set up Docker',
-                uses: 'docker/setup-docker@v1',
+                name: 'Set up Docker Buildx',
+                uses: 'docker/setup-buildx-action@v2',
+                with: {
+                    platforms: 'linux/amd64,linux/arm64',
+                },
             },
             {
                 name: 'Login to container registry',
@@ -52,6 +56,11 @@ project.release?.addJobs({
                     GH_TOKEN: '${{ github.token }}',
                 },
                 run: `echo $GH_TOKEN" | docker login ghcr.io -u ${githubUserName} --password-stdin`,
+            },
+            {
+                name: 'Download build artifacts',
+                uses: 'actions/download-artifact@v3',
+                with: { name: 'build-artifact', path: 'dist' },
             },
             {
                 name: 'Get release tag',
@@ -77,6 +86,10 @@ project.release?.addJobs({
                     RELEASE_TAG: '${{ steps.get-release-tag.outputs.RELEASE_TAG }}',
                 },
                 run: `docker build -t ghcr.io/${githubUserName}/${name}:$RELEASE_TAG --build-arg NODE_CONTAINER_VERSION=${nodeContainerVersion} .`,
+            },
+            {
+                name: 'Test Docker image',
+                run: `docker run --rm -it ghcr.io/${githubUserName}/${name}:$RELEASE_TAG`,
             },
         ],
     },
