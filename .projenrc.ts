@@ -1,9 +1,21 @@
 import { typescript } from 'projen';
+import { JobPermission } from 'projen/lib/github/workflows-model';
+import {
+    authorName,
+    description,
+    githubUserName,
+    name,
+    nodeContainerVersion,
+    typescriptVersion,
+} from './config';
+
 const project = new typescript.TypeScriptAppProject({
-    authorName: 'Cameron Tranthim-Fryer',
-    defaultReleaseBranch: 'main',
+    name,
+    description,
+    authorName,
+    repository: `https://github.com/${githubUserName}/${name}`,
     license: 'MIT',
-    name: 'projen-nodejs-container',
+    defaultReleaseBranch: 'main',
     prettier: true,
     prettierOptions: {
         settings: {
@@ -13,16 +25,61 @@ const project = new typescript.TypeScriptAppProject({
         },
     },
     projenrcTs: true,
-    repository: 'https://github.com/devops-at-home/projen-nodejs-container',
     githubOptions: {
         mergify: false,
     },
-    typescriptVersion: '5.0.4',
+    typescriptVersion,
+    release: true,
+});
 
-    // deps: [],                /* Runtime dependencies of this module. */
-    // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
-    // devDeps: [],             /* Build dependencies for this module. */
-    // packageName: undefined,  /* The "name" in package.json. */
+project.release?.addJobs({
+    publish_container: {
+        runsOn: ['ubuntu-latest'],
+        needs: ['release_github'],
+        permissions: { contents: JobPermission.READ, idToken: JobPermission.WRITE },
+        env: {
+            CI: 'true',
+        },
+        name: 'Publish container to GitHub container registry',
+        steps: [
+            {
+                name: 'Set up Docker',
+                uses: 'docker/setup-docker@v1',
+            },
+            {
+                name: 'Login to container registry',
+                env: {
+                    GH_TOKEN: '${{ github.token }}',
+                },
+                run: `echo $GH_TOKEN" | docker login ghcr.io -u ${githubUserName} --password-stdin`,
+            },
+            {
+                name: 'Get release tag',
+                id: 'get-release-tag',
+                run: 'echo "RELEASE_TAG=$(cat dist/releasetag.txt)" >> $GITHUB_OUTPUT',
+            },
+            {
+                name: 'Download release',
+                env: {
+                    GH_TOKEN: '${{ github.token }}',
+                    RELEASE_TAG: '${{ steps.get-release-tag.outputs.RELEASE_TAG }}',
+                },
+                run: 'curl -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" -L "https://api.github.com/repos/${GITHUB_REPOSITORY}/tarball/${RELEASE_TAG}" -o release.tar.gz',
+            },
+            {
+                name: 'Extract and get folder name',
+                id: 'extract-folder',
+                run: 'tar xf release.tar.gz; FOLDER_NAME=$(find . -maxdepth 1 -name "${GITHUB_REPOSITORY_OWNER}*"); echo FOLDER_NAME=$FOLDER_NAME | tee -a $GITHUB_OUTPUT',
+            },
+            {
+                name: 'Build Docker image',
+                env: {
+                    RELEASE_TAG: '${{ steps.get-release-tag.outputs.RELEASE_TAG }}',
+                },
+                run: `docker build -t ghcr.io/${githubUserName}/${name}:$RELEASE_TAG --build-arg NODE_CONTAINER_VERSION=${nodeContainerVersion} .`,
+            },
+        ],
+    },
 });
 
 project.jest!.addTestMatch('**/?(*.)@(spec|test).[tj]s?(x)');
