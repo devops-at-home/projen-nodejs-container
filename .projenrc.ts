@@ -55,7 +55,7 @@ project.release?.addJobs({
                 env: {
                     GH_TOKEN: '${{ github.token }}',
                 },
-                run: `echo $GH_TOKEN" | docker login ghcr.io -u ${githubUserName} --password-stdin`,
+                run: `echo "$GH_TOKEN" | docker login ghcr.io -u ${githubUserName} --password-stdin`,
             },
             {
                 name: 'Download build artifacts',

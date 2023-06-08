@@ -84,7 +84,7 @@ jobs:
       - name: Login to container registry
         env:
           GH_TOKEN: ${{ github.token }}
-        run: echo $GH_TOKEN" | docker login ghcr.io -u devops-at-home --password-stdin
+        run: echo "$GH_TOKEN" | docker login ghcr.io -u devops-at-home --password-stdin
       - name: Download build artifacts
         uses: actions/download-artifact@v3
         with:
