@@ -9,7 +9,9 @@ WORKDIR /build
 
 COPY . /build/
 
-RUN 'npm install -g yarn; yarn install; yarn build'
+RUN npm install -g yarn \ 
+    && yarn install \
+    && yarn build
 
 FROM node:$NODE_CONTAINER_VERSION
 
