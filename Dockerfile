@@ -18,5 +18,5 @@ FROM node:$NODE_CONTAINER_VERSION
 COPY --from=builder /build/lib/* /app/
 
 # Set the command to run your app (replace "index.js" with your app's entry point)
-CMD [ "/bin/node", "/app/index.js" ]
+CMD [ "/app/index.js" ]
 
