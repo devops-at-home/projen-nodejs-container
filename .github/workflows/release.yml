@@ -110,3 +110,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ steps.get-release-tag.outputs.RELEASE_TAG }}
         run: docker run --rm ghcr.io/devops-at-home/projen-nodejs-container:$RELEASE_TAG
+      - name: Push Docker image
+        env:
+          RELEASE_TAG: ${{ steps.get-release-tag.outputs.RELEASE_TAG }}
+        run: docker push ghcr.io/devops-at-home/projen-nodejs-container:$RELEASE_TAG

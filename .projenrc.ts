@@ -95,6 +95,13 @@ project.release?.addJobs({
                 },
                 run: `docker run --rm ghcr.io/${githubUserName}/${name}:$RELEASE_TAG`,
             },
+            {
+                name: 'Push Docker image',
+                env: {
+                    RELEASE_TAG: '${{ steps.get-release-tag.outputs.RELEASE_TAG }}',
+                },
+                run: `docker push ghcr.io/${githubUserName}/${name}:$RELEASE_TAG`,
+            },
         ],
     },
 });
