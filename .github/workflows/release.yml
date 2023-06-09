@@ -112,3 +112,5 @@ jobs:
         env:
           RELEASE_TAG: ${{ steps.get-release-tag.outputs.RELEASE_TAG }}
         run: docker run --rm ghcr.io/devops-at-home/projen-nodejs-container:$RELEASE_TAG
+      - name: Logout from Docker registry
+        run: docker logout ghcr.io

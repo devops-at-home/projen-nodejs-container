@@ -99,6 +99,10 @@ project.release?.addJobs({
                 },
                 run: `docker run --rm ghcr.io/${githubUserName}/${name}:$RELEASE_TAG`,
             },
+            {
+                name: 'Logout from Docker registry',
+                run: 'docker logout ghcr.io',
+            },
         ],
     },
 });
