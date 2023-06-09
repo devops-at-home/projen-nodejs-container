@@ -77,6 +77,8 @@ jobs:
       CI: "true"
       REGISTRY_IMAGE: devops-at-home/projen-nodejs-container
     steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
         with:
@@ -101,16 +103,17 @@ jobs:
       - name: Extract and get folder name
         id: extract-folder
         run: tar xf release.tar.gz; FOLDER_NAME=$(find . -maxdepth 1 -name "${GITHUB_REPOSITORY_OWNER}*"); echo FOLDER_NAME=$FOLDER_NAME | tee -a $GITHUB_OUTPUT
-      - name: Build Docker image
+      - name: Build and push Docker image amd64
         env:
           RELEASE_TAG: ${{ steps.get-release-tag.outputs.RELEASE_TAG }}
-        run: docker build -t ghcr.io/devops-at-home/projen-nodejs-container:$RELEASE_TAG --build-arg NODE_CONTAINER_VERSION=lts-alpine .
+        run: docker buildx build --platform linux/amd64 --output "type=image,push=true" --tag ghcr.io/devops-at-home/projen-nodejs-container:$RELEASE_TAG --tag ghcr.io/devops-at-home/projen-nodejs-container:latest --build-arg NODE_CONTAINER_VERSION=lts-alpine .
         working-directory: ${{ steps.extract-folder.outputs.FOLDER_NAME }}
       - name: Test Docker image
         env:
           RELEASE_TAG: ${{ steps.get-release-tag.outputs.RELEASE_TAG }}
         run: docker run --rm ghcr.io/devops-at-home/projen-nodejs-container:$RELEASE_TAG
-      - name: Push Docker image
+      - name: Build Docker image arm64
         env:
           RELEASE_TAG: ${{ steps.get-release-tag.outputs.RELEASE_TAG }}
-        run: docker push ghcr.io/devops-at-home/projen-nodejs-container:$RELEASE_TAG
+        run: docker buildx build --platform linux/arm64 --output "type=image,push=true" --tag ghcr.io/devops-at-home/projen-nodejs-container:$RELEASE_TAG --tag ghcr.io/devops-at-home/projen-nodejs-container:latest --build-arg NODE_CONTAINER_VERSION=lts-alpine .
+        working-directory: ${{ steps.extract-folder.outputs.FOLDER_NAME }}

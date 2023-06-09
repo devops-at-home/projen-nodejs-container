@@ -44,6 +44,10 @@ project.release?.addJobs({
         },
         steps: [
             {
+                name: 'Set up QEMU',
+                uses: 'docker/setup-qemu-action@v2',
+            },
+            {
                 name: 'Set up Docker Buildx',
                 uses: 'docker/setup-buildx-action@v2',
                 with: {
@@ -81,12 +85,12 @@ project.release?.addJobs({
                 run: 'tar xf release.tar.gz; FOLDER_NAME=$(find . -maxdepth 1 -name "${GITHUB_REPOSITORY_OWNER}*"); echo FOLDER_NAME=$FOLDER_NAME | tee -a $GITHUB_OUTPUT',
             },
             {
-                name: 'Build Docker image',
+                name: 'Build and push Docker image amd64',
                 workingDirectory: '${{ steps.extract-folder.outputs.FOLDER_NAME }}',
                 env: {
                     RELEASE_TAG: '${{ steps.get-release-tag.outputs.RELEASE_TAG }}',
                 },
-                run: `docker build -t ghcr.io/${githubUserName}/${name}:$RELEASE_TAG --build-arg NODE_CONTAINER_VERSION=${nodeContainerVersion} .`,
+                run: `docker buildx build --platform linux/amd64 --output "type=image,push=true" --tag ghcr.io/${githubUserName}/${name}:$RELEASE_TAG --tag ghcr.io/${githubUserName}/${name}:latest --build-arg NODE_CONTAINER_VERSION=${nodeContainerVersion} .`,
             },
             {
                 name: 'Test Docker image',
@@ -96,11 +100,12 @@ project.release?.addJobs({
                 run: `docker run --rm ghcr.io/${githubUserName}/${name}:$RELEASE_TAG`,
             },
             {
-                name: 'Push Docker image',
+                name: 'Build Docker image arm64',
+                workingDirectory: '${{ steps.extract-folder.outputs.FOLDER_NAME }}',
                 env: {
                     RELEASE_TAG: '${{ steps.get-release-tag.outputs.RELEASE_TAG }}',
                 },
-                run: `docker push ghcr.io/${githubUserName}/${name}:$RELEASE_TAG`,
+                run: `docker buildx build --platform linux/arm64 --output "type=image,push=true" --tag ghcr.io/${githubUserName}/${name}:$RELEASE_TAG --tag ghcr.io/${githubUserName}/${name}:latest --build-arg NODE_CONTAINER_VERSION=${nodeContainerVersion} .`,
             },
         ],
     },
