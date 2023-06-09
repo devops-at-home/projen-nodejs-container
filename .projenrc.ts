@@ -85,12 +85,12 @@ project.release?.addJobs({
                 run: 'tar xf release.tar.gz; FOLDER_NAME=$(find . -maxdepth 1 -name "${GITHUB_REPOSITORY_OWNER}*"); echo FOLDER_NAME=$FOLDER_NAME | tee -a $GITHUB_OUTPUT',
             },
             {
-                name: 'Build and push Docker image amd64',
+                name: 'Build and push Docker image',
                 workingDirectory: '${{ steps.extract-folder.outputs.FOLDER_NAME }}',
                 env: {
                     RELEASE_TAG: '${{ steps.get-release-tag.outputs.RELEASE_TAG }}',
                 },
-                run: `docker buildx build --platform linux/amd64 --output "type=image,push=true" --tag ghcr.io/${githubUserName}/${name}:$RELEASE_TAG --tag ghcr.io/${githubUserName}/${name}:latest --build-arg NODE_CONTAINER_VERSION=${nodeContainerVersion} .`,
+                run: `docker buildx build --platform linux/amd64 --platform linux/arm64 --output "type=image,push=true" --tag ghcr.io/${githubUserName}/${name}:$RELEASE_TAG --tag ghcr.io/${githubUserName}/${name}:latest --build-arg NODE_CONTAINER_VERSION=${nodeContainerVersion} .`,
             },
             {
                 name: 'Test Docker image',
@@ -98,14 +98,6 @@ project.release?.addJobs({
                     RELEASE_TAG: '${{ steps.get-release-tag.outputs.RELEASE_TAG }}',
                 },
                 run: `docker run --rm ghcr.io/${githubUserName}/${name}:$RELEASE_TAG`,
-            },
-            {
-                name: 'Build Docker image arm64',
-                workingDirectory: '${{ steps.extract-folder.outputs.FOLDER_NAME }}',
-                env: {
-                    RELEASE_TAG: '${{ steps.get-release-tag.outputs.RELEASE_TAG }}',
-                },
-                run: `docker buildx build --platform linux/arm64 --output "type=image,push=true" --tag ghcr.io/${githubUserName}/${name}:$RELEASE_TAG --tag ghcr.io/${githubUserName}/${name}:latest --build-arg NODE_CONTAINER_VERSION=${nodeContainerVersion} .`,
             },
         ],
     },
